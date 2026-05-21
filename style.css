@@ -1,0 +1,370 @@
+/* ============================================================
+   Coloracle 〜ココロ・パレット〜
+   style.css
+   ============================================================ */
+
+/* =============== Reset & Base =============== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ===========================================================
+   フォント指定戦略：
+   - 1st: 「FOT-パール Std」「FOT-ニューシネマ A Std」をローカル参照
+     （ご自身のPCに入っていればそのまま表示されます）
+   - 2nd: 無料Webフォントで似た雰囲気を出す
+     Shippori Mincho B1 ≒ ニューシネマA系（上品な明朝）
+     Klee One ≒ パール系（柔らかい仮名）
+   =========================================================== */
+:root {
+  --font-pearl:  "FOT-パール Std", "FOT-Pearl Std", "Klee One", "M PLUS Rounded 1c", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --font-cinema: "FOT-ニューシネマ A Std", "FOT-NewCinema A Std", "Shippori Mincho B1", "Yu Mincho", "Hiragino Mincho ProN", serif;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: var(--font-pearl);
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  /* 動画読み込み前 & 横長表示で動画の左右を埋める星空グラデ */
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, #1e3a78 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, #2a7a9b 0%, transparent 60%),
+    linear-gradient(180deg, #050d2c 0%, #0a1a48 30%, #163d6e 60%, #1a5b78 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 横長表示時に body 全体に細かい星をCSSで散らす（動画の両脇が無地に見えないように） */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 27% 42%, #ffffff 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 42% 14%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 58% 33%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 71% 9%, #ffffff 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 84% 24%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 9% 62%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 33% 71%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 49% 88%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 66% 56%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 78% 78%, #ffffff 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 92% 65%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 19% 90%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 3% 33%, #ffffff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 22% 30%, #fffceb 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 55% 18%, #fffceb 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 82% 48%, #fffceb 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 15% 80%, #fffceb 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 70% 85%, #fffceb 50%, transparent 51%);
+  opacity: 0.55;
+  animation: twinkle 4.5s ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  0%   { opacity: 0.3; }
+  100% { opacity: 0.75; }
+}
+
+/* =============== Video Backgrounds =============== */
+.bg-video {
+  position: fixed;
+  inset: 0;
+  /* デフォルト（縦長＝スマホ）：viewport を覆う */
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  pointer-events: none;
+}
+.bg-video.is-active { opacity: 1; }
+
+/* 横長表示（デスクトップ等）：動画は中央に native aspect で表示し、
+   左右は body の星空グラデ＋CSSスターで埋める。
+   720×1280(9:16) を 100vh で表示すると幅は (9/16)*100vh = 56.25vh */
+@media (min-aspect-ratio: 1/1) {
+  .bg-video {
+    inset: auto;                       /* まず inset:0 を解除 */
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    height: 100vh;
+    max-width: 100vw;
+    object-fit: contain;
+    /* 動画と左右グラデの繋ぎ目を馴染ませる soft shadow（vignette風） */
+    box-shadow: 0 0 100px 30px rgba(10, 26, 72, 0.6);
+  }
+}
+
+/* 結果画面で選択色を背景動画の上に重ねる薄いフィルター */
+.color-tint {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.9s ease, background-color 0.9s ease;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+.color-tint.is-active { opacity: 0.85; }
+
+/* =============== App Frame =============== */
+.app {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  min-height: calc(100vh - 48px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.screen {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 8px;
+  animation: fadeIn 0.8s ease both;
+}
+.hidden { display: none !important; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =============== STEP 1: Opening ===============
+   チワワとロゴは動画に焼き込まれているので、ボタンだけを画面下に配置 */
+#opening {
+  min-height: calc(100vh - 48px);
+  justify-content: flex-end;
+  padding-bottom: 12vh;
+}
+.start-btn {
+  padding: 14px 42px;
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-family: var(--font-pearl);
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: 0.15em;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
+}
+.start-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+}
+.start-btn:active { transform: translateY(0); }
+
+/* =============== STEP 2: Palette =============== */
+#palette .heading {
+  font-family: var(--font-pearl);
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: 0.12em;
+  color: #fdfdfd;
+  margin: 4px 0 26px;
+  line-height: 1.8;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;                   /* 12 → 22 へ拡張、カード同士のゆとりUP */
+  width: min(82%, 280px);      /* 290 → 280 へ微縮小 */
+  margin: 0 auto;
+}
+.color-card {
+  aspect-ratio: 5 / 7;
+  border-radius: 12px;
+  cursor: pointer;
+  /* 白いフチをはっきりと（カードの存在感アップ） */
+  border: 2.5px solid rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
+  transition: transform 0.3s cubic-bezier(.22,.9,.32,1.2),
+              box-shadow 0.3s ease,
+              filter 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.color-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 50%);
+  pointer-events: none;
+}
+.color-card:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.48),
+    0 0 0 1px rgba(255, 255, 255, 0.3);
+  filter: brightness(1.08);
+}
+.color-card:active { transform: translateY(-2px) scale(1.02); }
+
+/* =============== STEP 3: Result =============== */
+#result { padding-top: 18px; }
+.oracle-card {
+  position: relative;
+  width: min(100%, 360px);
+  /* デフォルト白だが、JSで選択色（cardBg）に上書きされる */
+  background: #ffffff;
+  color: #2a2f45;
+  border-radius: 22px;
+  padding: 28px 24px 24px;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.75);
+  animation: cardPop 0.9s cubic-bezier(.22,.9,.32,1.2) both;
+  /* 色の切替を滑らかに */
+  transition: background-color 0.5s ease;
+}
+@keyframes cardPop {
+  0%   { opacity: 0; transform: translateY(30px) scale(0.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* チワワは PNG をマスクとして使い、background-color で着色できる。
+   file:// で開いた時のCORS問題を避けるため PNG は base64 で埋め込み。
+   JS が選択色の tint カラーを backgroundColor に設定する。 */
+.oracle-card .chihuahua-mini {
+  width: 120px;
+  height: 90px;
+  margin: -82px auto 4px;
+  display: block;
+  background-color: #ffffff;   /* 初期値（JSで上書き） */
+
+  --chihuahua-png: url("data:image/png;base64,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");
+
+  -webkit-mask-image: var(--chihuahua-png);
+          mask-image: var(--chihuahua-png);
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+          mask-size: contain;
+  -webkit-mask-position: center;
+          mask-position: center;
+
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.32));
+  animation: floatY 4s ease-in-out infinite alternate;
+  transition: background-color 0.5s ease;
+}
+@keyframes floatY {
+  from { transform: translateY(-4px); }
+  to   { transform: translateY(6px); }
+}
+.group-tag {
+  display: inline-block;
+  font-family: var(--font-cinema);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: #8a7fb8;
+  margin-top: 4px;
+}
+.oracle-bubble {
+  position: relative;
+  margin: 18px 6px 14px;
+  padding: 18px 16px;
+  /* カード色の上に半透明白を重ねて読みやすくする */
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
+  color: #34344a;
+  font-family: var(--font-pearl);
+  font-size: 15px;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  font-weight: 400;
+  backdrop-filter: blur(4px);
+}
+.oracle-bubble::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 12px solid rgba(255, 255, 255, 0.72);
+}
+
+/* Lucky Item 表示エリア */
+.lucky-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0 18px;
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px dashed rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+}
+.lucky-label {
+  font-family: var(--font-cinema);
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  color: #6b6485;
+  text-transform: none;
+}
+.lucky-text {
+  font-family: var(--font-pearl);
+  font-size: 15px;
+  font-weight: 500;
+  color: #2a2f45;
+  letter-spacing: 0.05em;
+}
+
+/* TOPに戻るボタン（カード色の上でも視認できるよう色調整） */
+.retry-btn {
+  margin-top: 6px;
+  padding: 11px 30px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.55);
+  color: #2a2f45;
+  font-family: var(--font-pearl);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: transform 0.25s ease, background 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+.retry-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: translateY(-2px);
+}
+
+/* =============== Responsive =============== */
+@media (max-width: 360px) {
+  .palette-grid { gap: 10px; }
+  .heading { font-size: 16px; }
+}

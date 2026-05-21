@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Coloracle 〜ココロ・パレット〜</title>
+
+<!-- 無料Webフォント（ローカルにFOT-パール / ニューシネマA が無い場合のフォールバック用） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@300;400;500;600&family=Klee+One:wght@400;600&family=M+PLUS+Rounded+1c:wght@300;400;500&display=swap" rel="stylesheet">
+
+<!-- スタイルシート -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ========== 動画背景 ========== -->
+<video class="bg-video is-active" id="video-opening"
+       src="./img/bg-opening.mp4"
+       autoplay muted loop playsinline preload="auto"></video>
+<video class="bg-video" id="video-clean"
+       src="./img/bg-clean.mp4"
+       muted loop playsinline preload="auto"></video>
+
+<!-- 結果画面の色フィルター -->
+<div class="color-tint" id="color-tint"></div>
+
+<!-- カードめくり時のBGM（きらきら輝く・約5秒） -->
+<audio id="card-bgm" src="./img/card-bgm.mp3" preload="auto"></audio>
+
+<div class="app">
+
+  <!-- ========== STEP 1: Opening ==========
+       チワワ・ロゴは動画に焼き込み済みのため、ボタンのみ配置 -->
+  <section id="opening" class="screen">
+    <button class="start-btn" id="start-btn">カラー診断をする</button>
+  </section>
+
+  <!-- ========== STEP 2: Palette ========== -->
+  <section id="palette" class="screen hidden">
+    <h2 class="heading">いま、あなたの心が<br>自然と求めている色は？</h2>
+    <div class="palette-grid" id="palette-grid">
+      <button class="color-card" data-color="lavender"  style="background:#bfb1e3" aria-label="ラベンダー"></button>
+      <button class="color-card" data-color="navy"      style="background:#9eb2d9" aria-label="ネイビー"></button>
+      <button class="color-card" data-color="gray"      style="background:#b8bac8" aria-label="グレー"></button>
+      <button class="color-card" data-color="pink"      style="background:#f2b7be" aria-label="ピンク"></button>
+      <button class="color-card" data-color="mint"      style="background:#aedeb0" aria-label="ミント"></button>
+      <button class="color-card" data-color="turquoise" style="background:#9cd2d2" aria-label="ターコイズ"></button>
+      <button class="color-card" data-color="yellow"    style="background:#f0dc8e" aria-label="イエロー"></button>
+      <button class="color-card" data-color="white"     style="background:#f4ede0" aria-label="ホワイト"></button>
+      <button class="color-card" data-color="orange"    style="background:#f0bd8d" aria-label="オレンジ"></button>
+    </div>
+  </section>
+
+  <!-- ========== STEP 3: Result ========== -->
+  <section id="result" class="screen hidden">
+    <div class="oracle-card">
+      <!-- 上から覗くチワワ（動画と同じシルエット・選択色で着色） -->
+      <div class="chihuahua-mini" id="chihuahua-mini" aria-hidden="true"></div>
+
+      <div class="group-tag" id="group-tag">Today's Oracle</div>
+
+      <div class="oracle-bubble">
+        <span id="oracle-text">…</span>
+      </div>
+
+      <div class="lucky-item">
+        <span class="lucky-label">Lucky Item</span>
+        <span class="lucky-text" id="lucky-text">…</span>
+      </div>
+
+      <button class="retry-btn" id="retry-btn">TOPに戻る</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- スクリプト -->
+<script src="script.js"></script>
+</body>
+</html>
